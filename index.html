@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1e293b">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>🏆 Tournoi Ultimate</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: rgba(0,0,0,0); }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); min-height: 100vh; color: white; padding: 20px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        h1 { text-align: center; font-size: 2rem; margin-bottom: 20px; }
+        h2 { font-size: 1.3rem; margin-bottom: 15px; }
+        .card { background: rgba(31, 41, 55, 0.9); border-radius: 15px; padding: 20px; margin-bottom: 15px; }
+        .btn { background: #3b82f6; color: white; border: none; padding: 15px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; touch-action: manipulation; }
+        .btn:active { opacity: 0.8; }
+        .btn-green { background: #10b981; }
+        .btn-red { background: #ef4444; }
+        .btn-yellow { background: #f9e887; color: #000; }
+        .btn-secondary { background: #6b7280; }
+        .grid { display: grid; gap: 10px; margin-bottom: 15px; }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-5 { grid-template-columns: repeat(5, 1fr); }
+        .color-btn { height: 60px; border-radius: 10px; border: 3px solid transparent; font-weight: bold; cursor: pointer; font-size: 0.9rem; touch-action: manipulation; }
+        .color-btn.selected { border-color: white; }
+        .counter { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .counter-btn { background: #4b5563; color: white; border: none; width: 45px; height: 45px; border-radius: 8px; font-size: 1.3rem; font-weight: bold; cursor: pointer; touch-action: manipulation; }
+        .counter-value { background: #4b5563; padding: 10px 20px; border-radius: 10px; min-width: 100px; text-align: center; }
+        .big { font-size: 2rem; font-weight: bold; display: block; }
+        .small { font-size: 0.85rem; color: #9ca3af; display: block; }
+        input[type="text"] { padding: 12px; border-radius: 8px; border: none; background: #4b5563; color: white; font-size: 1rem; width: 100%; }
+        input[type="checkbox"] { width: 24px; height: 24px; }
+        .team-card { background: #374151; padding: 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .team-badge { width: 45px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; }
+        .match-card { background: #1f2937; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
+        .match-card.played { background: #374151; }
+        .timer { font-size: 3rem; font-weight: bold; text-align: center; margin: 15px 0; }
+        .timer.warning { color: #ef4444; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .game-area { padding: 25px; border-radius: 15px; text-align: center; margin: 15px 0; }
+        .game-btn { font-size: 1.3rem; padding: 25px; margin: 10px 0; touch-action: manipulation; }
+        .score-display { display: flex; justify-content: space-around; margin: 15px 0; }
+        .score-item { text-align: center; }
+        .score-item .name { padding: 8px 15px; border-radius: 15px; display: inline-block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
+        .score-item .value { font-size: 3rem; font-weight: bold; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
+        .modal-content { background: #1f2937; padding: 25px; border-radius: 15px; max-width: 400px; width: 100%; text-align: center; }
+        .engage-btn { padding: 30px; border-radius: 15px; border: 3px solid transparent; font-size: 1.3rem; font-weight: bold; cursor: pointer; touch-action: manipulation; }
+        .engage-btn.selected { border-color: white; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        @media (max-width: 768px) { h1 { font-size: 1.6rem; } .grid-5 { grid-template-columns: repeat(3, 1fr); } }
+    </style>
+</head>
+<body>
+    <div id="page-setup" class="page active">
+        <h1>🏆 Nouveau Tournoi</h1>
+        <div class="card">
+            <h2>Nombre d'équipes</h2>
+            <div class="grid grid-4">
+                <button class="btn" ontouchstart="" onclick="selectTeamCount(3)">3</button>
+                <button class="btn" ontouchstart="" onclick="selectTeamCount(4)">4</button>
+                <button class="btn" ontouchstart="" onclick="selectTeamCount(5)">5</button>
+                <button class="btn" ontouchstart="" onclick="selectTeamCount(6)">6</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Durée des matchs</h2>
+            <div class="counter">
+                <button class="counter-btn" ontouchstart="" onclick="changeDuration(-1)">-</button>
+                <div class="counter-value"><span class="big" id="duration-value">5</span><span class="small">minutes</span></div>
+                <button class="counter-btn" ontouchstart="" onclick="changeDuration(1)">+</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Points par attrapé</h2>
+            <div class="counter">
+                <button class="counter-btn" ontouchstart="" onclick="changePoints(-1)">-</button>
+                <div class="counter-value"><span class="big" id="points-value">1</span><span class="small">point(s)</span></div>
+                <button class="counter-btn" ontouchstart="" onclick="changePoints(1)">+</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="flex-between">
+                <h2>Points bonus</h2>
+                <input type="checkbox" id="bonus-enabled" onchange="toggleBonus()">
+            </div>
+            <div id="bonus-options" style="display:none;">
+                <input type="text" id="bonus-name" placeholder="Nom du bonus" value="Action spéciale">
+                <div class="counter" style="margin-top:15px;">
+                    <button class="counter-btn" ontouchstart="" onclick="changeBonus(-1)">-</button>
+                    <div class="counter-value"><span class="big" id="bonus-value">1</span><span class="small">point(s)</span></div>
+                    <button class="counter-btn" ontouchstart="" onclick="changeBonus(1)">+</button>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-green" ontouchstart="" onclick="setupTournament()">🥏 Créer le tournoi</button>
+    </div>
+
+    <div id="page-colors" class="page">
+        <h1>🎨 Couleurs</h1>
+        <div id="color-selection"></div>
+        <button class="btn btn-green" ontouchstart="" onclick="startTournament()">✅ Démarrer</button>
+    </div>
+
+    <div id="page-tournament" class="page">
+        <h1>🏆 Tournoi</h1>
+        <p style="text-align:center; color:#9ca3af; margin-bottom:15px;" id="match-progress"></p>
+        <div class="card">
+            <div class="flex-between">
+                <h2>📊 Classement</h2>
+                <button class="btn btn-green" ontouchstart="" onclick="exportResults()" style="width:auto; padding:10px 15px; margin:0; font-size:0.9rem;">📄 Export</button>
+            </div>
+            <div id="standings"></div>
+        </div>
+        <div class="card">
+            <h2>📅 Matchs</h2>
+            <div id="matches"></div>
+        </div>
+        <button class="btn btn-secondary" ontouchstart="" onclick="resetTournament()">🔄 Nouveau</button>
+    </div>
+
+    <div id="page-game" class="page">
+        <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin-bottom:15px; flex-wrap:wrap;">
+            <button class="btn btn-secondary" ontouchstart="" onclick="backToTournament()" style="width:auto; padding:12px;">← Retour</button>
+            <div class="timer" id="timer">5:00</div>
+            <button class="btn btn-secondary" ontouchstart="" onclick="toggleTimer()" id="timer-btn" style="width:auto; padding:12px;" disabled>▶</button>
+        </div>
+        <button class="btn btn-red" ontouchstart="" onclick="confirmEndMatch()" id="end-match-btn" style="display:none;">🏁 Terminer</button>
+        <div id="winner-banner" style="display:none; background:#fbbf24; padding:15px; border-radius:12px; text-align:center; margin:15px 0;">
+            <h2 style="color:#000;" id="winner-text"></h2>
+        </div>
+        <div id="game-content"></div>
+        <div class="card">
+            <div class="score-display" id="score-display"></div>
+        </div>
+    </div>
+
+    <div id="modal-confirm" class="modal">
+        <div class="modal-content">
+            <h2>⚠️ Terminer ?</h2>
+            <div class="grid grid-2" style="margin-top:20px;">
+                <button class="btn btn-secondary" ontouchstart="" onclick="closeModal()">Annuler</button>
+                <button class="btn btn-red" ontouchstart="" onclick="endMatch()">Terminer</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+var state = {
+    numTeams: 4, matchDuration: 5, pointsPerGoal: 1, bonusEnabled: false,
+    bonusName: 'Action spéciale', bonusPoints: 1, teams: [], matches: [],
+    currentMatchIndex: null, score1: 0, score2: 0, possession: 1,
+    engagingTeam: null, matchStarted: false, timeLeft: 300,
+    timerInterval: null, isRunning: false
+};
+
+var COLORS = [
+    {name: 'Blanc', value: '#FFFFFF', text: '#000000'},
+    {name: 'Noir', value: '#000000', text: '#FFFFFF'},
+    {name: 'Bleu', value: '#3B82F6', text: '#FFFFFF'},
+    {name: 'Rouge', value: '#EF4444', text: '#FFFFFF'},
+    {name: 'Vert', value: '#10B981', text: '#FFFFFF'},
+    {name: 'Jaune', value: '#EAB308', text: '#000000'},
+    {name: 'Orange', value: '#F97316', text: '#FFFFFF'},
+    {name: 'Violet', value: '#A855F7', text: '#FFFFFF'},
+    {name: 'Rose', value: '#EC4899', text: '#FFFFFF'},
+    {name: 'Cyan', value: '#06B6D4', text: '#FFFFFF'}
+];
+
+function showPage(p) {
+    var ps = document.querySelectorAll('.page');
+    for (var i = 0; i < ps.length; i++) ps[i].classList.remove('active');
+    document.getElementById(p).classList.add('active');
+}
+
+function getTextColor(bg) {
+    for (var i = 0; i < COLORS.length; i++) {
+        if (COLORS[i].value === bg) return COLORS[i].text;
+    }
+    return '#FFFFFF';
+}
+
+function formatTime(s) {
+    var m = Math.floor(s / 60);
+    var sec = s % 60;
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+function selectTeamCount(n) {
+    state.numTeams = n;
+    var btns = document.querySelectorAll('#page-setup .grid-4 .btn');
+    for (var i = 0; i < btns.length; i++) {
+        btns[i].style.background = (i + 3 === n) ? '#3b82f6' : '#6b7280';
+    }
+}
+
+function changeDuration(d) {
+    state.matchDuration = Math.max(1, state.matchDuration + d);
+    document.getElementById('duration-value').textContent = state.matchDuration;
+}
+
+function changePoints(d) {
+    state.pointsPerGoal = Math.max(1, state.pointsPerGoal + d);
+    document.getElementById('points-value').textContent = state.pointsPerGoal;
+}
+
+function toggleBonus() {
+    state.bonusEnabled = document.getElementById('bonus-enabled').checked;
+    document.getElementById('bonus-options').style.display = state.bonusEnabled ? 'block' : 'none';
+}
+
+function changeBonus(d) {
+    state.bonusPoints = Math.max(1, state.bonusPoints + d);
+    document.getElementById('bonus-value').textContent = state.bonusPoints;
+}
+
+function setupTournament() {
+    state.teams = [];
+    for (var i = 0; i < state.numTeams; i++) {
+        var c = COLORS[i % COLORS.length];
+        state.teams.push({id: i + 1, color: c.value, name: c.name});
+    }
+    state.matches = generateMatches(state.teams);
+    renderColorSelection();
+    showPage('page-colors');
+}
+
+function renderColorSelection() {
+    var con = document.getElementById('color-selection');
+    con.innerHTML = '';
+    for (var i = 0; i < state.teams.length; i++) {
+        var t = state.teams[i];
+        var card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = '<h2>Équipe ' + t.id + '</h2><div class="grid grid-5" id="colors-team-' + t.id + '"></div>';
+        con.appendChild(card);
+        var grid = document.getElementById('colors-team-' + t.id);
+        for (var j = 0; j < COLORS.length; j++) {
+            var c = COLORS[j];
+            var btn = document.createElement('button');
+            btn.className = 'color-btn';
+            if (t.color === c.value) btn.classList.add('selected');
+            btn.style.backgroundColor = c.value;
+            btn.style.color = c.text;
+            btn.textContent = c.name;
+            btn.setAttribute('ontouchstart', '');
+            btn.setAttribute('data-tid', t.id);
+            btn.setAttribute('data-cid', j);
+            btn.onclick = function() {
+                selectTeamColor(parseInt(this.getAttribute('data-tid')), COLORS[parseInt(this.getAttribute('data-cid'))]);
+            };
+            grid.appendChild(btn);
+        }
+    }
+}
+
+function selectTeamColor(tid, c) {
+    for (var i = 0; i < state.teams.length; i++) {
+        if (state.teams[i].id === tid) {
+            state.teams[i].color = c.value;
+            state.teams[i].name = c.name;
+        }
+    }
+    state.matches = generateMatches(state.teams);
+    renderColorSelection();
+}
+
+function generateMatches(teams) {
+    var pairs = [];
+    for (var i = 0; i < teams.length; i++) {
+        for (var j = i + 1; j < teams.length; j++) {
+            pairs.push({team1: teams[i], team2: teams[j]});
+        }
+    }
+    var ordered = [];
+    var counts = {};
+    for (var i = 0; i < teams.length; i++) counts[teams[i].id] = 0;
+    while (pairs.length > 0) {
+        var best = -1;
+        var bestScore = 999;
+        for (var i = 0; i < pairs.length; i++) {
+            var p = pairs[i];
+            var sc = counts[p.team1.id] + counts[p.team2.id];
+            if (sc < bestScore) {
+                bestScore = sc;
+                best = i;
+            }
+        }
+        var sel = pairs.splice(best, 1)[0];
+        ordered.push({
+            team1: sel.team1, team2: sel.team2,
+            score1: null, score2: null, winner: null, played: false
+        });
+        counts[sel.team1.id]++;
+        counts[sel.team2.id]++;
+    }
+    return ordered;
+}
+
+function startTournament() {
+    state.bonusName = document.getElementById('bonus-name').value || 'Action spéciale';
+    renderTournament();
+    showPage('page-tournament');
+}
+
+function getStandings() {
+    var standings = [];
+    for (var i = 0; i < state.teams.length; i++) {
+        var team = state.teams[i];
+        var pts = 0, wins = 0, losses = 0, draws = 0, gf = 0, ga = 0;
+        for (var j = 0; j < state.matches.length; j++) {
+            var m = state.matches[j];
+            if (!m.played) continue;
+            if (m.team1.id === team.id) {
+                gf += m.score1;
+                ga += m.score2;
+                if (m.winner === 1) { pts += 3; wins++; }
+                else if (m.winner === 2) { losses++; }
+                else { pts += 1; draws++; }
+            } else if (m.team2.id === team.id) {
+                gf += m.score2;
+                ga += m.score1;
+                if (m.winner === 2) { pts += 3; wins++; }
+                else if (m.winner === 1) { losses++; }
+                else { pts += 1; draws++; }
+            }
+        }
+        standings.push({
+            team: team, points: pts, wins: wins, losses: losses, draws: draws,
+            goalsFor: gf, goalsAgainst: ga, goalDiff: gf - ga
+        });
+    }
+    standings.sort(function(a, b) {
+        if (b.points !== a.points) return b.points - a.points;
+        return b.goalDiff - a.goalDiff;
+    });
+    return standings;
+}
+
+function renderTournament() {
+    var standings = getStandings();
+    var played = 0;
+    for (var i = 0; i < state.matches.length; i++) {
+        if (state.matches[i].played) played++;
+    }
+    document.getElementById('match-progress').textContent = played + ' / ' + state.matches.length + ' matchs joués';
+    var sDiv = document.getElementById('standings');
+    sDiv.innerHTML = '';
+    for (var i = 0; i < standings.length; i++) {
+        var s = standings[i];
+        var card = document.createElement('div');
+        card.className = 'team-card';
+        card.innerHTML = '<div style="display:flex; align-items:center; gap:12px;"><div style="font-size:1.3rem; font-weight:bold; width:25px;">' + (i + 1) + '</div>' +
+            '<div class="team-badge" style="background:' + s.team.color + '; color:' + getTextColor(s.team.color) + '">' + s.team.name[0] + '</div>' +
+            '<div><div style="font-weight:bold; font-size:0.95rem;">Équipe ' + s.team.name + '</div><div style="color:#9ca3af; font-size:0.8rem;">' + s.wins + 'V-' + s.draws + 'N-' + s.losses + 'D</div></div></div>' +
+            '<div style="text-align:right;"><div style="font-size:1.5rem; font-weight:bold;">' + s.points + ' pts</div><div style="color:#9ca3af; font-size:0.8rem;">' + s.goalsFor + ':' + s.goalsAgainst + ' (' + (s.goalDiff >= 0 ? '+' : '') + s.goalDiff + ')</div></div>';
+        sDiv.appendChild(card);
+    }
+    var mDiv = document.getElementById('matches');
+    mDiv.innerHTML = '';
+    for (var i = 0; i < state.matches.length; i++) {
+        var m = state.matches[i];
+        var isCur = (i === state.currentMatchIndex && state.matchStarted && !m.played);
+        var card = document.createElement('div');
+        card.className = m.played ? 'match-card played' : 'match-card';
+        if (isCur) card.style.border = '2px solid #fbbf24';
+        var scoreHTML = '';
+        if (m.played || isCur) {
+            var c1 = m.winner === 1 ? '#10b981' : (m.winner === 0 ? '#fbbf24' : '#6b7280');
+            var c2 = m.winner === 2 ? '#10b981' : (m.winner === 0 ? '#fbbf24' : '#6b7280');
+            scoreHTML = '<div style="display:flex; gap:8px; align-items:center;"><span style="font-size:1.3rem; font-weight:bold; color:' + c1 + '">' + (m.score1 || 0) + '</span><span style="font-size:0.9rem;">-</span><span style="font-size:1.3rem; font-weight:bold; color:' + c2 + '">' + (m.score2 || 0) + '</span></div>';
+        } else {
+            scoreHTML = '<span style="color:#6b7280; font-size:0.9rem;">vs</span>';
+        }
+        card.innerHTML = '<div style="display:flex; align-items:center; gap:12px;"><div style="background:#3b82f6; color:white; font-weight:bold; padding:8px 12px; border-radius:8px; min-width:50px; text-align:center; font-size:0.9rem;">#' + (i + 1) + '</div>' +
+            '<div style="flex:1; display:flex; justify-content:space-between; align-items:center; gap:8px;"><div style="display:flex; align-items:center; gap:8px;"><div class="team-badge" style="background:' + m.team1.color + '; color:' + getTextColor(m.team1.color) + '; width:35px; height:35px; font-size:0.95rem;">' + m.team1.name[0] + '</div><span style="font-size:0.85rem;">' + m.team1.name + '</span></div>' +
+            scoreHTML +
+            '<div style="display:flex; align-items:center; gap:8px;"><span style="font-size:0.85rem;">' + m.team2.name + '</span><div class="team-badge" style="background:' + m.team2.color + '; color:' + getTextColor(m.team2.color) + '; width:35px; height:35px; font-size:0.95rem;">' + m.team2.name[0] + '</div></div></div>' +
+            (m.played ? '' : '<button class="btn" ontouchstart="" style="width:auto; padding:8px 15px; margin:0; font-size:0.85rem;" onclick="startMatch(' + i + ')">' + (isCur ? 'Reprendre' : 'Jouer') + '</button>') +
+            '</div>';
+        mDiv.appendChild(card);
+    }
+}
+
+function startMatch(idx) {
+    document.getElementById('winner-banner').style.display = 'none';
+    if (idx === state.currentMatchIndex && state.matchStarted) {
+        renderGame();
+        showPage('page-game');
+        return;
+    }
+    var m = state.matches[idx];
+    state.currentMatchIndex = idx;
+    state.score1 = m.score1 || 0;
+    state.score2 = m.score2 || 0;
+    state.possession = 1;
+    state.engagingTeam = null;
+    state.matchStarted = false;
+    state.timeLeft = state.matchDuration * 60;
+    state.isRunning = false;
+    renderGame();
+    showPage('page-game');
+}
+
+function renderGame() {
+    var m = state.matches[state.currentMatchIndex];
+    var t1c = m.team1.color, t2c = m.team2.color;
+    var t1n = m.team1.name, t2n = m.team2.name;
+    updateTimer();
+    if (!state.matchStarted) {
+        document.getElementById('game-content').innerHTML = 
+            '<div class="card"><h2 style="text-align:center; margin-bottom:25px;">Qui engage ?</h2>' +
+            '<div class="grid grid-2">' +
+            '<button class="engage-btn ' + (state.engagingTeam === 1 ? 'selected' : '') + '" ontouchstart="" style="background:' + t1c + '; color:' + getTextColor(t1c) + '" onclick="selectEngaging(1)">' +
+            '<div style="font-size:1.5rem; margin-bottom:8px;">' + t1n + '</div>' +
+            '<div style="font-size:0.9rem;">' + (state.engagingTeam === 1 ? '✅ Engage' : 'Engage ?') + '</div></button>' +
+            '<button class="engage-btn ' + (state.engagingTeam === 2 ? 'selected' : '') + '" ontouchstart="" style="background:' + t2c + '; color:' + getTextColor(t2c) + '" onclick="selectEngaging(2)">' +
+            '<div style="font-size:1.5rem; margin-bottom:8px;">' + t2n + '</div>' +
+            '<div style="font-size:0.9rem;">' + (state.engagingTeam === 2 ? '✅ Engage' : 'Engage ?') + '</div></button></div>' +
+            (state.engagingTeam ? '<div style="text-align:center; margin-top:25px;"><button class="btn btn-green" ontouchstart="" style="font-size:1.3rem; padding:25px;" onclick="launchMatch()">▶️ LANCER</button></div>' : '') +
+            '</div>';
+    } else {
+        var curTeam = state.possession === 1 ? m.team1 : m.team2;
+        var curName = state.possession === 1 ? t1n : t2n;
+        document.getElementById('game-content').innerHTML = 
+            '<div class="game-area" style="background:' + curTeam.color + '; color:' + getTextColor(curTeam.color) + '">' +
+            '<h2 style="margin-bottom:20px;">Équipe ' + curName + '</h2>' +
+            '<button class="btn game-btn" ontouchstart="" style="background:#fff; color:#000;" onclick="addScore()" ' + (state.isRunning ? '' : 'disabled') + '>🥏 ATTRAPÉ</button>' +
+            (state.bonusEnabled ? '<button class="btn game-btn btn-yellow" ontouchstart="" onclick="addBonus()" ' + (state.isRunning ? '' : 'disabled') + '>⭐ ' + state.bonusName.toUpperCase() + '</button>' : '') +
+            '<button class="btn game-btn" ontouchstart="" style="background:rgba(255,255,255,0.2);" onclick="switchPossession()" ' + (state.isRunning ? '' : 'disabled') + '>⚠️ TURNOVER</button>' +
+            '</div>';
+    }
+    updateScoreDisplay();
+}
+
+function selectEngaging(t) {
+    state.engagingTeam = t;
+    state.possession = t === 1 ? 2 : 1;
+    renderGame();
+}
+
+function launchMatch() {
+    document.getElementById('winner-banner').style.display = 'none';
+    state.matchStarted = true;
+    state.isRunning = true;
+    startTimer();
+    document.getElementById('timer-btn').disabled = false;
+    document.getElementById('end-match-btn').style.display = 'block';
+    renderGame();
+}
+
+function updateScoreDisplay() {
+    var m = state.matches[state.currentMatchIndex];
+    document.getElementById('score-display').innerHTML = 
+        '<div class="score-item"><div class="name" style="background:' + m.team1.color + '; color:' + getTextColor(m.team1.color) + '">' + m.team1.name + '</div><div class="value">' + state.score1 + '</div></div>' +
+        '<div class="score-item"><div class="name" style="background:' + m.team2.color + '; color:' + getTextColor(m.team2.color) + '">' + m.team2.name + '</div><div class="value">' + state.score2 + '</div></div>';
+}
+
+function updateTimer() {
+    var el = document.getElementById('timer');
+    el.textContent = formatTime(state.timeLeft);
+    el.className = state.timeLeft <= 60 ? 'timer warning' : 'timer';
+}
+
+function startTimer() {
+    if (state.timerInterval) clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(function() {
+        if (state.isRunning && state.timeLeft > 0) {
+            state.timeLeft--;
+            updateTimer();
+            if (state.timeLeft === 0) {
+                state.isRunning = false;
+                checkWinner();
+            }
+        }
+    }, 1000);
+}
+
+function toggleTimer() {
+    if (!state.matchStarted) return;
+    state.isRunning = !state.isRunning;
+    document.getElementById('timer-btn').textContent = state.isRunning ? '⏸' : '▶';
+}
+
+function addScore() {
+    if (!state.isRunning) return;
+    if (state.possession === 1) state.score1 += state.pointsPerGoal;
+    else state.score2 += state.pointsPerGoal;
+    state.matches[state.currentMatchIndex].score1 = state.score1;
+    state.matches[state.currentMatchIndex].score2 = state.score2;
+    updateScoreDisplay();
+    checkWinner();
+}
+
+function addBonus() {
+    if (!state.isRunning) return;
+    if (state.possession === 1) state.score1 += state.bonusPoints;
+    else state.score2 += state.bonusPoints;
+    state.matches[state.currentMatchIndex].score1 = state.score1;
+    state.matches[state.currentMatchIndex].score2 = state.score2;
+    updateScoreDisplay();
+}
+
+function switchPossession() {
+    if (!state.isRunning) return;
+    state.possession = state.possession === 1 ? 2 : 1;
+    renderGame();
+}
+
+function checkWinner() {
+    if (state.timeLeft === 0) {
+        var w = state.score1 > state.score2 ? 1 : (state.score2 > state.score1 ? 2 : 0);
+        showWinner(w);
+    }
+}
+
+function showWinner(w) {
+    var m = state.matches[state.currentMatchIndex];
+    var wn = w === 1 ? m.team1.name : (w === 2 ? m.team2.name : 'Match nul');
+    document.getElementById('winner-text').textContent = w === 0 ? '🤝 Match nul !' : '🏆 Équipe ' + wn + ' gagne !';
+    document.getElementById('winner-banner').style.display = 'block';
+    document.getElementById('end-match-btn').style.display = 'none';
+    state.matches[state.currentMatchIndex].score1 = state.score1;
+    state.matches[state.currentMatchIndex].score2 = state.score2;
+    state.matches[state.currentMatchIndex].winner = w;
+    state.matches[state.currentMatchIndex].played = true;
+    renderTournament();
+}
+
+function confirmEndMatch() {
+    document.getElementById('modal-confirm').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('modal-confirm').classList.remove('active');
+}
+
+function endMatch() {
+    closeModal();
+    state.isRunning = false;
+    var w = state.score1 > state.score2 ? 1 : (state.score2 > state.score1 ? 2 : 0);
+    showWinner(w);
+}
+
+function backToTournament() {
+    if (state.isRunning) {
+        state.isRunning = false;
+        document.getElementById('timer-btn').textContent = '▶';
+    }
+    if (state.currentMatchIndex !== null && state.matchStarted) {
+        state.matches[state.currentMatchIndex].score1 = state.score1;
+        state.matches[state.currentMatchIndex].score2 = state.score2;
+    }
+    renderTournament();
+    showPage('page-tournament');
+}
+
+function resetTournament() {
+    if (state.timerInterval) clearInterval(state.timerInterval);
+    state = {
+        numTeams: 4, matchDuration: 5, pointsPerGoal: 1, bonusEnabled: false,
+        bonusName: 'Action spéciale', bonusPoints: 1, teams: [], matches: [],
+        currentMatchIndex: null, score1: 0, score2: 0, possession: 1,
+        engagingTeam: null, matchStarted: false, timeLeft: 300,
+        timerInterval: null, isRunning: false
+    };
+    document.getElementById('duration-value').textContent = '5';
+    document.getElementById('points-value').textContent = '1';
+    document.getElementById('bonus-value').textContent = '1';
+    document.getElementById('bonus-enabled').checked = false;
+    document.getElementById('bonus-options').style.display = 'none';
+    selectTeamCount(4);
+    showPage('page-setup');
+}
+
+function exportResults() {
+    var standings = getStandings();
+    var played = 0;
+    for (var i = 0; i < state.matches.length; i++) {
+        if (state.matches[i].played) played++;
+    }
+    var html = '<!DOCTYPE html><html><head>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1e293b"><meta charset="UTF-8"><title>Tournoi Ultimate</title><style>body{font-family:Arial;padding:30px;max-width:800px;margin:0 auto;}h1{text-align:center;color:#1e293b;border-bottom:2px solid #3b82f6;padding-bottom:8px;margin-bottom:15px;font-size:1.5rem;}h2{color:#1e293b;margin-top:20px;border-bottom:1px solid #6b7280;padding-bottom:4px;font-size:1.1rem;}.info{background:#eff6ff;padding:10px;border-radius:5px;margin:10px 0;font-size:0.85rem;line-height:1.6;}table{width:100%;border-collapse:collapse;margin:10px 0;font-size:0.8rem;}th,td{padding:6px 8px;text-align:left;border:1px solid #e5e7eb;}th{background:#f3f4f6;font-weight:bold;}.match{padding:6px;margin:3px 0;background:#f9fafb;border-radius:3px;font-size:0.8rem;display:flex;justify-content:space-between;}.winner{color:#10b981;font-weight:bold;}.draw{color:#fbbf24;font-weight:bold;}@media print{body{padding:15px;}}</style></head><body>';
+    html += '<h1>🏆 TOURNOI ULTIMATE FRISBEE</h1>';
+    html += '<div class="info"><strong>📅</strong> ' + new Date().toLocaleDateString('fr-FR') + ' | <strong>⚡</strong> ' + played + '/' + state.matches.length + ' matchs | <strong>⏱️</strong> ' + state.matchDuration + ' min | <strong>🎯</strong> ' + state.pointsPerGoal + ' pt/but';
+    if (state.bonusEnabled) html += ' | <strong>⭐</strong> ' + state.bonusName + ' (' + state.bonusPoints + ' pts)';
+    html += '</div>';
+    html += '<h2>📊 CLASSEMENT</h2><table><thead><tr><th style="width:40px;">Pos</th><th>Équipe</th><th style="width:50px;">Pts</th><th style="width:40px;">V</th><th style="width:40px;">N</th><th style="width:40px;">D</th><th style="width:50px;">BP</th><th style="width:50px;">BC</th><th style="width:50px;">Diff</th></tr></thead><tbody>';
+    for (var i = 0; i < standings.length; i++) {
+        var s = standings[i];
+        html += '<tr><td style="text-align:center;"><strong>' + (i + 1) + '</strong></td><td><strong>Équipe ' + s.team.name + '</strong></td><td style="text-align:center;"><strong>' + s.points + '</strong></td><td style="text-align:center;">' + s.wins + '</td><td style="text-align:center;">' + s.draws + '</td><td style="text-align:center;">' + s.losses + '</td><td style="text-align:center;">' + s.goalsFor + '</td><td style="text-align:center;">' + s.goalsAgainst + '</td><td style="text-align:center;">' + (s.goalDiff >= 0 ? '+' : '') + s.goalDiff + '</td></tr>';
+    }
+    html += '</tbody></table>';
+    html += '<h2>📅 RÉSULTATS</h2>';
+    for (var i = 0; i < state.matches.length; i++) {
+        var m = state.matches[i];
+        html += '<div class="match"><span><strong>#' + (i + 1) + '</strong> ' + m.team1.name + ' vs ' + m.team2.name + '</span>';
+        if (m.played) {
+            var cls = m.winner === 0 ? 'draw' : 'winner';
+            var res = m.winner === 1 ? m.team1.name : (m.winner === 2 ? m.team2.name : 'Nul');
+            html += '<span class="' + cls + '">' + m.score1 + '-' + m.score2 + ' (' + res + ')</span>';
+        } else {
+            html += '<span style="color:#9ca3af;">À jouer</span>';
+        }
+        html += '</div>';
+    }
+    html += '<div style="text-align:center;color:#6b7280;margin-top:20px;padding-top:10px;border-top:1px solid #e5e7eb;font-size:0.75rem;">' + new Date().toLocaleString('fr-FR') + '</div>
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+</body>
+</html>';
+    var blob = new Blob([html], {type: 'text/html;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'tournoi-ultimate-' + new Date().toISOString().split('T')[0] + '.html';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    setTimeout(function() {
+        alert('📄 Fichier téléchargé !\n\nSur iOS:\n1. Ouvrez le fichier dans Fichiers\n2. Appuyez sur Partager\n3. Choisissez Imprimer\n4. Pincez pour zoomer = PDF\n5. Partagez le PDF');
+    }, 500);
+}
+
+selectTeamCount(4);
