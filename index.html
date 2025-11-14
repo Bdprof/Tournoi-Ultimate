@@ -584,9 +584,7 @@ function exportResults() {
     for (var i = 0; i < state.matches.length; i++) {
         if (state.matches[i].played) played++;
     }
-    var html = '<!DOCTYPE html><html><head>
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#1e293b"><meta charset="UTF-8"><title>Tournoi Ultimate</title><style>body{font-family:Arial;padding:30px;max-width:800px;margin:0 auto;}h1{text-align:center;color:#1e293b;border-bottom:2px solid #3b82f6;padding-bottom:8px;margin-bottom:15px;font-size:1.5rem;}h2{color:#1e293b;margin-top:20px;border-bottom:1px solid #6b7280;padding-bottom:4px;font-size:1.1rem;}.info{background:#eff6ff;padding:10px;border-radius:5px;margin:10px 0;font-size:0.85rem;line-height:1.6;}table{width:100%;border-collapse:collapse;margin:10px 0;font-size:0.8rem;}th,td{padding:6px 8px;text-align:left;border:1px solid #e5e7eb;}th{background:#f3f4f6;font-weight:bold;}.match{padding:6px;margin:3px 0;background:#f9fafb;border-radius:3px;font-size:0.8rem;display:flex;justify-content:space-between;}.winner{color:#10b981;font-weight:bold;}.draw{color:#fbbf24;font-weight:bold;}@media print{body{padding:15px;}}</style></head><body>';
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tournoi Ultimate</title><style>body{font-family:Arial;padding:30px;max-width:800px;margin:0 auto;}h1{text-align:center;color:#1e293b;border-bottom:2px solid #3b82f6;padding-bottom:8px;margin-bottom:15px;font-size:1.5rem;}h2{color:#1e293b;margin-top:20px;border-bottom:1px solid #6b7280;padding-bottom:4px;font-size:1.1rem;}.info{background:#eff6ff;padding:10px;border-radius:5px;margin:10px 0;font-size:0.85rem;line-height:1.6;}table{width:100%;border-collapse:collapse;margin:10px 0;font-size:0.8rem;}th,td{padding:6px 8px;text-align:left;border:1px solid #e5e7eb;}th{background:#f3f4f6;font-weight:bold;}.match{padding:6px;margin:3px 0;background:#f9fafb;border-radius:3px;font-size:0.8rem;display:flex;justify-content:space-between;}.winner{color:#10b981;font-weight:bold;}.draw{color:#fbbf24;font-weight:bold;}@media print{body{padding:15px;}}</style></head><body>';
     html += '<h1>🏆 TOURNOI ULTIMATE FRISBEE</h1>';
     html += '<div class="info"><strong>📅</strong> ' + new Date().toLocaleDateString('fr-FR') + ' | <strong>⚡</strong> ' + played + '/' + state.matches.length + ' matchs | <strong>⏱️</strong> ' + state.matchDuration + ' min | <strong>🎯</strong> ' + state.pointsPerGoal + ' pt/but';
     if (state.bonusEnabled) html += ' | <strong>⭐</strong> ' + state.bonusName + ' (' + state.bonusPoints + ' pts)';
@@ -616,8 +614,7 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js');
 }
 </script>
-</body>
-</html>';
+</body></html>';
     var blob = new Blob([html], {type: 'text/html;charset=utf-8'});
     var url = URL.createObjectURL(blob);
     var link = document.createElement('a');
