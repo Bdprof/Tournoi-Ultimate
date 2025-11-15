@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>🏆 Tournoi Ultimate</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🥏</text></svg>">
+    <meta name="apple-mobile-web-app-title" content="Tournoi Ultimate">
+    <title>🥏 Tournoi Ultimate</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: rgba(0,0,0,0); }
         html, body { height: 100%; overflow: hidden; position: fixed; width: 100%; }
@@ -187,7 +189,7 @@ function us(){var m=s.m[s.ci];document.getElementById('sd').innerHTML='<div clas
 function ut(){var el=document.getElementById('tm');el.textContent=ft(s.tl);el.className=s.tl<=60?'timer warning':'timer';}
 function stt(){if(s.ti)clearInterval(s.ti);s.ti=setInterval(function(){if(s.ir&&s.tl>0){s.tl--;ut();if(s.tl===0){s.ir=false;cw();}}},1000);}
 function tgT(){if(!s.ms)return;s.ir=!s.ir;document.getElementById('tb').textContent=s.ir?'⏸':'▶';}
-function as(){if(!s.ir)return;if(s.po===1)s.s1+=s.p;else s.s2+=s.p;s.m[s.ci].s1=s.s1;s.m[s.ci].s2=s.s2;us();cw();}
+function as(){if(!s.ir)return;if(s.po===1)s.s1+=s.p;else s.s2+=s.p;s.m[s.ci].s1=s.s1;s.m[s.ci].s2=s.s2;s.po=s.po===1?2:1;us();rg();cw();}
 function ab(){if(!s.ir)return;if(s.po===1)s.s1+=s.bp;else s.s2+=s.bp;s.m[s.ci].s1=s.s1;s.m[s.ci].s2=s.s2;us();}
 function sp(){if(!s.ir)return;s.po=s.po===1?2:1;rg();}
 function cw(){if(s.tl===0){var w=s.s1>s.s2?1:(s.s2>s.s1?2:0);sw(w);}}
