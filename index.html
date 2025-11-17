@@ -74,29 +74,28 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 100vh;
             background: #0a2540;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            animation: fadeOut 0.5s ease-in-out 1.5s forwards;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+        }
+        #splash-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
         #splash-screen img {
-            max-width: 90%;
-            max-height: 90%;
+            max-width: 80%;
+            max-height: 80%;
             object-fit: contain;
             animation: zoomIn 0.8s ease-out;
         }
-        @keyframes fadeOut {
-            to {
-                opacity: 0;
-                visibility: hidden;
-            }
-        }
         @keyframes zoomIn {
             from {
-                transform: scale(0.8);
+                transform: scale(0.7);
                 opacity: 0;
             }
             to {
