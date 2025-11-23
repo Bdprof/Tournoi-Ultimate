@@ -2,7 +2,9 @@ const CACHE_NAME = 'tournoi-ultimate-v1';
 const urlsToCache = [
   './',
   './index.html',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  'https://raw.githubusercontent.com/Bdprof/Tournoi-Ultimate/refs/heads/main/Image%20Tournoi-ultimate.png',
+  'https://raw.githubusercontent.com/Bdprof/Tournoi-Ultimate/refs/heads/main/Image%20page%20parametres%20tournoi%20Ultimate.png'
 ];
 
 // Installation du Service Worker
