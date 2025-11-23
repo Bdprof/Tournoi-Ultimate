@@ -1,22 +1,67 @@
-{
-  "name": "Tournoi Ultimate",
-  "short_name": "Ultimate",
-  "description": "Gestion de tournois d'Ultimate Frisbee",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#1a1a1a",
-  "theme_color": "#3b82f6",
-  "orientation": "portrait",
-  "icons": [
-    {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233b82f6'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E🥏%3C/text%3E%3C/svg%3E",
-      "sizes": "192x192",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233b82f6'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E🥏%3C/text%3E%3C/svg%3E",
-      "sizes": "512x512",
-      "type": "image/svg+xml"
-    }
-  ]
-}
+const CACHE_NAME = 'tournoi-ultimate-v1';
+const urlsToCache = [
+  './',
+  './index.html',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+];
+
+// Installation du Service Worker
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Cache ouvert');
+        return cache.addAll(urlsToCache);
+      })
+  );
+});
+
+// Activation et nettoyage des anciens caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Suppression ancien cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+// Interception des requêtes réseau
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // Retourne la version en cache si disponible
+        if (response) {
+          return response;
+        }
+        
+        // Sinon, récupère depuis le réseau
+        return fetch(event.request).then(response => {
+          // Vérifie si la réponse est valide
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+          
+          // Clone la réponse pour la mettre en cache
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          
+          return response;
+        });
+      })
+      .catch(() => {
+        // En cas d'erreur, retourne la page d'accueil en cache
+        return caches.match('./index.html');
+      })
+  );
+});
