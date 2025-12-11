@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tournoi-ultimate-permanent'; // Cache persistant illimité
+const CACHE_NAME = 'tournoi-ultimate-permanent';
 const STATIC_ASSETS = [
   './',
   './index.html'
@@ -45,7 +45,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Gestion des requêtes - Stratégie Cache First avec fallback Network
+// Gestion des requêtes - Stratégie optimisée pour iOS
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -55,19 +55,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Pour les ressources locales: Cache First
+  // Pour les ressources locales: Cache First (toujours disponible)
   if (url.origin === self.location.origin) {
     event.respondWith(
       caches.open(CACHE_NAME).then((cache) => {
         return cache.match(request).then((response) => {
           if (response) {
+            // Mettre à jour le cache en arrière-plan si connecté
+            if (navigator.onLine) {
+              fetch(request)
+                .then((networkResponse) => {
+                  if (networkResponse && networkResponse.status === 200) {
+                    cache.put(request, networkResponse.clone());
+                  }
+                })
+                .catch(() => {});
+            }
             return response;
           }
 
           // Si pas en cache, essayer le réseau
           return fetch(request)
             .then((networkResponse) => {
-              // Mettre en cache les réponses valides
               if (networkResponse && networkResponse.status === 200) {
                 const clonedResponse = networkResponse.clone();
                 cache.put(request, clonedResponse);
@@ -75,7 +84,6 @@ self.addEventListener('fetch', (event) => {
               return networkResponse;
             })
             .catch(() => {
-              // Si le réseau échoue, retourner la version en cache ou une réponse par défaut
               return cache.match(request) || caches.match('./index.html');
             });
         });
@@ -117,4 +125,19 @@ self.addEventListener('message', (event) => {
   }
 });
 
-console.log('✅ Service Worker prêt - Cache permanent activé (sans limite de durée)');
+// Synchronisation en arrière-plan pour iOS
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-app-data') {
+    event.waitUntil(
+      caches.open(CACHE_NAME).then((cache) => {
+        // Rafraîchir les ressources critiques
+        return Promise.all([
+          cache.add('./index.html').catch(() => {}),
+          cache.add('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js').catch(() => {})
+        ]);
+      })
+    );
+  }
+});
+
+console.log('✅ Service Worker prêt - Optimisé pour iOS');
